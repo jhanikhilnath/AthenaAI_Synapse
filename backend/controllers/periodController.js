@@ -1,5 +1,5 @@
 import Athlete from '../models/Athlete.js';
-import { getCycleBiologyData } from '../utils/cycleBiology.js';
+import { getCycleBiologyData, inferPhaseFromDay } from '../utils/cycleBiology.js';
 
 // list of fields expected by the FastAPI model (same as workoutController)
 const mlFields = [
@@ -256,18 +256,10 @@ export async function getCycleInfo(req, res) {
       // fallback: if ML didn't give us a currentPhase but we know local biology,
       // infer the phase purely from cycle day boundaries. this lets the endpoint
       // still return something reasonable even when no biometrics exist.
-      if (!currentPhase && localBiology) {
-        for (const [phaseName, info] of Object.entries(localBiology)) {
-          const [startDay, endDay] = info.days
-            .split('-')
-            .map(d => parseInt(d, 10));
-          if (currentCycleDay >= startDay && currentCycleDay <= endDay) {
-            currentPhase = phaseName;
-            // use the hormone profile as a rough context if none from ML
-            physiologicalContext = info.hormoneProfile;
-            break;
-          }
-        }
+      if (!currentPhase && currentCycleDay != null && useCycleLength != null) {
+        const fallback = inferPhaseFromDay(currentCycleDay, useCycleLength);
+        currentPhase = fallback.phase;
+        physiologicalContext = fallback.context;
       }
     }
 

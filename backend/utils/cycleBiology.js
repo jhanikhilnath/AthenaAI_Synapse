@@ -57,3 +57,19 @@ export function getCycleBiologyData(cycleLength = 28) {
     },
   };
 }
+
+export function inferPhaseFromDay(currentDay, cycleLength = 28) {
+  const localBiology = getCycleBiologyData(cycleLength);
+  for (const [phaseName, info] of Object.entries(localBiology)) {
+    const [startDay, endDay] = info.days
+      .split('-')
+      .map(d => parseInt(d, 10));
+    if (currentDay >= startDay && currentDay <= endDay) {
+      return {
+        phase: phaseName,
+        context: info.hormoneProfile,
+      };
+    }
+  }
+  return { phase: 'unknown', context: 'Unable to determine biological phase.' };
+}

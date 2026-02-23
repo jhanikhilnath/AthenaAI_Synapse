@@ -1,6 +1,12 @@
 import Athlete from '../models/Athlete.js';
-import { generateWorkoutPlan, parseAndImproveWorkoutPlan } from '../geminiService.js';
-import { getCycleBiologyData } from '../utils/cycleBiology.js';
+import {
+  generateWorkoutPlan,
+  parseAndImproveWorkoutPlan,
+} from '../geminiService.js';
+import {
+  getCycleBiologyData,
+  inferPhaseFromDay,
+} from '../utils/cycleBiology.js';
 
 // list of fields expected by the FastAPI model
 const mlFields = [
@@ -21,7 +27,12 @@ const mlFields = [
 // compute average period length across closed cycles using actively logged bleeding dates
 function getAveragePeriodLength(athlete) {
   const lengths = (athlete.cycleHistory || [])
-    .filter(c => c.bleedingDates && Array.isArray(c.bleedingDates) && c.bleedingDates.length > 0)
+    .filter(
+      c =>
+        c.bleedingDates &&
+        Array.isArray(c.bleedingDates) &&
+        c.bleedingDates.length > 0,
+    )
     .map(c => c.bleedingDates.length);
   if (lengths.length === 0) return null;
   const sum = lengths.reduce((a, b) => a + b, 0);
@@ -51,6 +62,14 @@ function fillFromHistory(bio, history = []) {
 function prepareForMl(bio) {
   const payload = {};
   for (const key of mlFields) {
+    if (key === 'exercise_frequency') {
+      payload[key] = 'High';
+      continue;
+    }
+    if (key === "diet") {
+      payload[key] = "Balanced";
+      continue;
+    }
     if (bio[key] === undefined || bio[key] === null) {
       throw new Error(`Missing biometric field: ${key}`);
     }
@@ -61,6 +80,7 @@ function prepareForMl(bio) {
 
 export async function generateWorkout(req, res) {
   try {
+    console.log('hello');
     const userId = req.user.id;
     const athlete = await Athlete.findById(userId);
     if (!athlete) return res.status(404).json({ message: 'User not found' });
@@ -86,7 +106,7 @@ export async function generateWorkout(req, res) {
     } else if (athlete.period_length != null) {
       bioForMl.period_length = athlete.period_length;
     }
-    
+
     const derivedCycleLength =
       athlete.cycle_length || athlete.getAverageCycleLength?.();
     if (
@@ -95,7 +115,7 @@ export async function generateWorkout(req, res) {
     ) {
       bioForMl.cycle_length = derivedCycleLength;
     }
-    
+
     const derivedCurrentDay = athlete.getCurrentCycleDay?.();
     if (
       (bioForMl.current_cycle_day == null ||
@@ -171,11 +191,17 @@ export async function generateWorkout(req, res) {
       phaseData = await mlResponse.json();
       console.log('ML service response (generateWorkout):', phaseData);
     } catch (e) {
-      console.warn("ML Model is not callable or failed. Falling back to local biology...", e.message);
-      const localFallback = getCycleBiologyData(bioForMl.cycle_length);
+      console.warn(
+        'ML Model is not callable or failed. Falling back to local biology...',
+        e.message,
+      );
+      const fallback = inferPhaseFromDay(
+        bioForMl.current_cycle_day,
+        bioForMl.cycle_length,
+      );
       phaseData = {
-        current_phase: localFallback.phase,
-        physiological_context: localFallback.description,
+        current_phase: fallback.phase,
+        physiological_context: fallback.context,
       };
     }
 
@@ -201,6 +227,16 @@ export async function generateWorkout(req, res) {
     if (athlete.workouts && athlete.workouts.length > 0) {
       previousWorkout = athlete.workouts[athlete.workouts.length - 1].plan;
     }
+    console.log(
+      userProfile,
+      phaseData,
+      previousWorkout,
+      null,
+      null,
+      nextPeriod,
+      localBio,
+      currentPhaseName,
+    );
 
     const newWorkoutPlan = await generateWorkoutPlan(
       userProfile,
@@ -278,7 +314,7 @@ export async function tweakWorkout(req, res) {
     } else if (athlete.period_length != null) {
       bioForMl2.period_length = athlete.period_length;
     }
-    
+
     const derivedCurrentDay2 = athlete.getCurrentCycleDay?.();
     if (
       (bioForMl2.current_cycle_day == null ||
@@ -352,11 +388,17 @@ export async function tweakWorkout(req, res) {
       phaseData = await mlResponse.json();
       console.log('ML service response (tweakWorkout):', phaseData);
     } catch (e) {
-      console.warn("ML Model is not callable or failed. Falling back to local biology...", e.message);
-      const localFallback = getCycleBiologyData(bioForMl2.cycle_length);
+      console.warn(
+        'ML Model is not callable or failed. Falling back to local biology...',
+        e.message,
+      );
+      const fallback = inferPhaseFromDay(
+        bioForMl2.current_cycle_day,
+        bioForMl2.cycle_length,
+      );
       phaseData = {
-        current_phase: localFallback.phase,
-        physiological_context: localFallback.description,
+        current_phase: fallback.phase,
+        physiological_context: fallback.context,
       };
     }
 
@@ -456,7 +498,7 @@ export async function uploadDetailedPlan(req, res) {
     } else if (athlete.period_length != null) {
       bioForMl3.period_length = athlete.period_length;
     }
-    
+
     const derivedCurrentDay3 = athlete.getCurrentCycleDay?.();
     if (
       (bioForMl3.current_cycle_day == null ||
@@ -523,11 +565,17 @@ export async function uploadDetailedPlan(req, res) {
       phaseData = await mlResponse.json();
       console.log('ML service response (uploadDetailedPlan):', phaseData);
     } catch (e) {
-      console.warn("ML Model is not callable or failed. Falling back to local biology...", e.message);
-      const localFallback = getCycleBiologyData(bioForMl3.cycle_length);
+      console.warn(
+        'ML Model is not callable or failed. Falling back to local biology...',
+        e.message,
+      );
+      const fallback = inferPhaseFromDay(
+        bioForMl3.current_cycle_day,
+        bioForMl3.cycle_length,
+      );
       phaseData = {
-        current_phase: localFallback.phase,
-        physiological_context: localFallback.description,
+        current_phase: fallback.phase,
+        physiological_context: fallback.context,
       };
     }
 
@@ -554,7 +602,7 @@ export async function uploadDetailedPlan(req, res) {
       localBio3,
       currentPhaseName3,
     );
-    
+
     // save updated workout entry
     await Athlete.findByIdAndUpdate(
       userId,
