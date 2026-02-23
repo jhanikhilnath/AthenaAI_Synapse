@@ -1,0 +1,504 @@
+{
+  "info": {
+    "name": "Athena Backend",
+    "_postman_id": "abcd1234-5678-90ab-cdef-1234567890ab",
+    "description": "Endpoints for the Athena cycle-synced workout API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Register",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\",\n  \"sport\": \"Soccer\",\n  \"experienceLevel\": \"Beginner\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "register"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const res = pm.response.json();",
+              "pm.test('status 201', () => pm.response.to.have.status(201));",
+              "pm.test('returns token', () => {",
+              "    pm.expect(res).to.have.property('token');",
+              "    pm.environment.set('authToken', res.token);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const res = pm.response.json();",
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "pm.test('returns token', () => {",
+              "    pm.expect(res).to.have.property('token');",
+              "    pm.environment.set('authToken', res.token);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Athlete Profile",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/athlete/me",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "athlete", "me"]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "if (!pm.environment.get('authToken')) {",
+              "    postman.setNextRequest('Login');",
+              "} else {",
+              "    const token = pm.environment.get('authToken');",
+              "    pm.request.headers.add({ key: 'Authorization', value: 'Bearer ' + token });",
+              "    pm.request.headers.add({ key: 'Cookie', value: 'authToken=' + token });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const res = pm.response.json();",
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "pm.test('athlete exists', () => pm.expect(res).to.have.property('athlete'));",
+              "pm.test('has cycle predictions', () => {",
+              "    pm.expect(res).to.have.property('predictedNextPeriodStart');",
+              "    pm.expect(res).to.have.property('currentCycleDay');",
+              "})"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Add Biometrics Entry",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"age\": 25,\n  \"weight\": 65,\n  \"height\": 170,\n  \"mood\": \"Happy\",\n  \"symptoms\": \"None\",\n  \"sleep_hours\": 8,\n  \"stress_level\": 2\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/biometrics",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "biometrics"]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "if (!pm.environment.get('authToken')) {",
+              "    postman.setNextRequest('Login');",
+              "} else {",
+              "    const token = pm.environment.get('authToken');",
+              "    pm.request.headers.add({ key: 'Authorization', value: 'Bearer ' + token });",
+              "    pm.request.headers.add({ key: 'Cookie', value: 'authToken=' + token });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const res = pm.response.json();",
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "pm.test('returns athlete object', () => pm.expect(res).to.have.property('athlete'));",
+              "pm.test('added entry property', () => pm.expect(res).to.have.property('added'));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "Generate Workout (needs cycle info)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/workout/generate",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "workout", "generate"]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "if (!pm.environment.get('authToken')) {",
+              "    postman.setNextRequest('Login');",
+              "} else {",
+              "    const token = pm.environment.get('authToken');",
+              "    pm.request.headers.add({ key: 'Authorization', value: 'Bearer ' + token });",
+              "    pm.request.headers.add({ key: 'Cookie', value: 'authToken=' + token });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('should require cycle info', () => pm.response.to.have.status(400));",
+              "pm.test('error mentions cycle information', () => {",
+              "    const res = pm.response.json();",
+              "    pm.expect(res.error).to.include('Cycle information');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "Log Bleeding Day(s)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"dates\": [\"2026-02-20\", \"2026-02-21\"]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/periods/bleeding",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "periods", "bleeding"]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "if (!pm.environment.get('authToken')) {",
+              "    postman.setNextRequest('Login');",
+              "} else {",
+              "    const token = pm.environment.get('authToken');",
+              "    pm.request.headers.add({ key: 'Authorization', value: 'Bearer ' + token });",
+              "    pm.request.headers.add({ key: 'Cookie', value: 'authToken=' + token });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const res = pm.response.json();",
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "pm.test('cycle stored', () => pm.expect(res).to.have.property('updatedCycle'));",
+              "pm.test('cycle may remain open', () => {",
+              "    const c = res.updatedCycle;",
+              "    pm.expect(c).to.have.property('start');",
+              "    pm.expect(c).to.not.have.property('end');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "Get Cycle Info",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/periods",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "periods"]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "if (!pm.environment.get('authToken')) {",
+              "    postman.setNextRequest('Login');",
+              "} else {",
+              "    const token = pm.environment.get('authToken');",
+              "    pm.request.headers.add({ key: 'Authorization', value: 'Bearer ' + token });",
+              "    pm.request.headers.add({ key: 'Cookie', value: 'authToken=' + token });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const res = pm.response.json();",
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "pm.test('contains history', () => pm.expect(res).to.have.property('cycleHistory'));",
+              "pm.test('bleeding days included', () => {",
+              "    const last = res.cycleHistory.slice(-1)[0] || {};",
+              "    pm.expect(last).to.have.property('bleedingDates');",
+              "});",
+              "pm.test('prediction fields either present or null', () => {",
+              "    pm.expect(res).to.have.property('averageCycleLength');",
+              "    pm.expect(res).to.have.property('predictedNextPeriodStart');",
+              "});",
+              "pm.test('phase info maybe included', () => {",
+              "    pm.expect(res).to.have.property('currentPhase');",
+              "    pm.expect(res).to.have.property('physiologicalContext');",
+              "    // if a cycle day exists we should get non-null strings",
+              "    if (res.currentCycleDay != null) {",
+              "        pm.expect(res.currentPhase).to.be.a('string').and.not.empty;",
+              "        pm.expect(res.physiologicalContext).to.be.a('string').and.not.empty;",
+              "    }",
+              "});",
+              "pm.test('local biology maybe included', () => {",
+              "    pm.expect(res).to.have.property('localBiology');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "Generate Workout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/workout/generate",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "workout", "generate"]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "if (!pm.environment.get('authToken')) {",
+              "    postman.setNextRequest('Login');",
+              "} else {",
+              "    const token = pm.environment.get('authToken');",
+              "    pm.request.headers.add({ key: 'Authorization', value: 'Bearer ' + token });",
+              "    pm.request.headers.add({ key: 'Cookie', value: 'authToken=' + token });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const res = pm.response.json();",
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "pm.test('success true', () => pm.expect(res).to.have.property('success', true));",
+              "pm.test('plan returned', () => pm.expect(res).to.have.property('plan'));",
+              "pm.test('period prediction exists', () => pm.expect(res).to.have.property('predictedNextPeriodStart'));",
+              "pm.test('local biology included', () => pm.expect(res).to.have.property('localBiology'));",
+              "pm.test('current phase name included', () => pm.expect(res).to.have.property('currentPhaseName'));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tweak Workout Plan",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"workoutRating\": 7,\n  \"comments\": \"Felt too heavy on legs\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/workout/tweak",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "workout", "tweak"]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "if (!pm.environment.get('authToken')) {",
+              "    postman.setNextRequest('Login');",
+              "} else {",
+              "    const token = pm.environment.get('authToken');",
+              "    pm.request.headers.add({ key: 'Authorization', value: 'Bearer ' + token });",
+              "    pm.request.headers.add({ key: 'Cookie', value: 'authToken=' + token });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const res = pm.response.json();",
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "pm.test('success true', () => pm.expect(res).to.have.property('success', true));",
+              "pm.test('plan returned', () => pm.expect(res).to.have.property('plan'));",
+              "pm.test('period prediction exists', () => pm.expect(res).to.have.property('predictedNextPeriodStart'));",
+              "pm.test('local biology included', () => pm.expect(res).to.have.property('localBiology'));",
+              "pm.test('current phase name included', () => pm.expect(res).to.have.property('currentPhaseName'));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "Upload Detailed Plan",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"textPlan\": \"Day 1: Heavy Squats 4x5, Leg Press 3x10. Day 2: Rest. Day 3: Bench Press 4x6, Incline DB Press 3x10.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/workout/upload",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "workout", "upload"]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "if (!pm.environment.get('authToken')) {",
+              "    postman.setNextRequest('Login');",
+              "} else {",
+              "    const token = pm.environment.get('authToken');",
+              "    pm.request.headers.add({ key: 'Authorization', value: 'Bearer ' + token });",
+              "    pm.request.headers.add({ key: 'Cookie', value: 'authToken=' + token });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const res = pm.response.json();",
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "pm.test('success true', () => pm.expect(res).to.have.property('success', true));",
+              "pm.test('plan returned', () => pm.expect(res).to.have.property('plan'));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "response": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "authToken",
+      "value": ""
+    },
+    {
+      "key": "testEmail",
+      "value": "test@example.com"
+    },
+    {
+      "key": "testPassword",
+      "value": "password123"
+    }
+  ]
+}
