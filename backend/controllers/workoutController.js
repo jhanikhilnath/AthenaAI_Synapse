@@ -61,6 +61,7 @@ function fillFromHistory(bio, history = []) {
  */
 function prepareForMl(bio) {
   const payload = {};
+  console.log(bio);
   for (const key of mlFields) {
     if (bio[key] === undefined || bio[key] === null) {
       throw new Error(`Missing biometric field: ${key}`);
@@ -90,7 +91,7 @@ export async function generateWorkout(req, res) {
       athlete.biometricsHistory[athlete.biometricsHistory.length - 1];
 
     // start with latest biometrics and backfill any missing required fields
-    const bioForMl = { ...latestBiometrics };
+    const bioForMl = latestBiometrics.toObject ? latestBiometrics.toObject() : { ...latestBiometrics };
     fillFromHistory(bioForMl, athlete.biometricsHistory);
     // override period_length strictly with derived average, ignoring any bugged historical static values
     const avgPeriod = getAveragePeriodLength(athlete);
@@ -291,7 +292,9 @@ export async function tweakWorkout(req, res) {
       athlete.biometricsHistory[athlete.biometricsHistory.length - 1];
 
     // attempt to derive cycle data when tweaking as well
-    const bioForMl2 = { ...latestBiometrics };
+    const bioForMl2 = latestBiometrics.toObject ? latestBiometrics.toObject() : { ...latestBiometrics };
+    fillFromHistory(bioForMl2, athlete.biometricsHistory);
+    
     const derivedCycleLength2 =
       athlete.cycle_length || athlete.getAverageCycleLength?.();
     if (
@@ -475,7 +478,9 @@ export async function uploadDetailedPlan(req, res) {
       athlete.biometricsHistory[athlete.biometricsHistory.length - 1];
 
     // attempt to derive cycle data
-    const bioForMl3 = { ...latestBiometrics };
+    const bioForMl3 = latestBiometrics.toObject ? latestBiometrics.toObject() : { ...latestBiometrics };
+    fillFromHistory(bioForMl3, athlete.biometricsHistory);
+    
     const derivedCycleLength3 =
       athlete.cycle_length || athlete.getAverageCycleLength?.();
     if (
