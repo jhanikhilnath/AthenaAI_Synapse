@@ -13,6 +13,8 @@ import api from '@/lib/api';
 
 const moods = ['Happy', 'Neutral', 'Irritable', 'Sad', 'Anxious'];
 const symptoms = ['None', 'Cramps', 'Mood Swings'];
+const exercise_frequencies = ['Low', 'Moderate', 'High'];
+const diets = ['Balanced', 'Vegetarian', 'High Sugar', 'Low Carb'];
 
 const Setup = () => {
   const { athlete, fetchProfile } = useAuthStore();
@@ -23,6 +25,8 @@ const Setup = () => {
     height: 165, 
     mood: '', 
     symptoms: '', 
+    exercise_frequency: '',
+    diet: '',
     sleep_hours: 7, 
     stress_level: 5 
   });
@@ -41,6 +45,8 @@ const Setup = () => {
         height: lastBio.height || 165,
         mood: '', // intentionally blank
         symptoms: '', // intentionally blank
+        exercise_frequency: lastBio.exercise_frequency || '',
+        diet: lastBio.diet || '',
         sleep_hours: lastBio.sleep_hours || 7,
         stress_level: lastBio.stress_level || 5
       });
@@ -48,12 +54,8 @@ const Setup = () => {
   }, [athlete]);
 
   const submitBiometrics = async () => {
-    if (!bio.mood) {
-      toast({ title: 'Mood is required', description: 'Please select your mood.', variant: 'destructive' });
-      return;
-    }
-    if (!bio.symptoms) {
-      toast({ title: 'Symptoms are required', description: 'Please select any symptoms.', variant: 'destructive' });
+    if (!bio.mood || !bio.symptoms || !bio.exercise_frequency || !bio.diet || !bio.age || !bio.weight || !bio.height) {
+      toast({ title: 'Missing Information', description: 'Please complete all fields before continuing.', variant: 'destructive' });
       return;
     }
 
@@ -116,6 +118,22 @@ const Setup = () => {
             <Select value={bio.symptoms} onValueChange={(v) => setBio({ ...bio, symptoms: v })}>
               <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="Select symptom" /></SelectTrigger>
               <SelectContent>{symptoms.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs">Exercise Frequency <span className="text-destructive">*</span></Label>
+            <Select value={bio.exercise_frequency} onValueChange={(v) => setBio({ ...bio, exercise_frequency: v })}>
+              <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="Select frequency" /></SelectTrigger>
+              <SelectContent>{exercise_frequencies.map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs">Diet <span className="text-destructive">*</span></Label>
+            <Select value={bio.diet} onValueChange={(v) => setBio({ ...bio, diet: v })}>
+              <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="Select diet" /></SelectTrigger>
+              <SelectContent>{diets.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
             </Select>
           </div>
 

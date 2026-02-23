@@ -37,6 +37,26 @@ export async function addBiometrics(req, res) {
       }
     }
 
+    // require all compulsory fields
+    const requiredFields = [
+      { key: 'age', val: age },
+      { key: 'weight', val: weight },
+      { key: 'height', val: height },
+      { key: 'sleep_hours', val: sleep_hours },
+      { key: 'stress_level', val: stress_level },
+      { key: 'mood', val: mood },
+      { key: 'symptoms', val: symptoms },
+      { key: 'exercise_frequency', val: exercise_frequency },
+      { key: 'diet', val: diet },
+    ];
+    for (const field of requiredFields) {
+      if (field.val == null || field.val === '') {
+        return res.status(400).json({
+          message: `Missing required field: ${field.key}`,
+        });
+      }
+    }
+
     const entry = {
       age,
       bmi: finalBmi,

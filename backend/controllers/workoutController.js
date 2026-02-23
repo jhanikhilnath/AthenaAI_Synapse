@@ -62,14 +62,6 @@ function fillFromHistory(bio, history = []) {
 function prepareForMl(bio) {
   const payload = {};
   for (const key of mlFields) {
-    if (key === 'exercise_frequency') {
-      payload[key] = 'High';
-      continue;
-    }
-    if (key === 'diet') {
-      payload[key] = 'Balanced';
-      continue;
-    }
     if (bio[key] === undefined || bio[key] === null) {
       throw new Error(`Missing biometric field: ${key}`);
     }
