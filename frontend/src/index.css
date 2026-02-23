@@ -6,54 +6,59 @@
 
 @layer base {
   :root {
-    --background: 220 20% 7%;
-    --foreground: 210 20% 95%;
+    /* ── Background: pale blush ≈ hsl(0 100% 94%) ── */
+    --background: 0 100% 94%;
+    --foreground: 340 40% 18%;
 
-    --card: 220 18% 11%;
-    --card-foreground: 210 20% 95%;
+    /* Cards: slightly lighter/whiter than the bg */
+    --card: 0 60% 90%;
+    --card-foreground: 340 40% 18%;
 
-    --popover: 220 18% 11%;
-    --popover-foreground: 210 20% 95%;
+    --popover: 0 60% 90%;
+    --popover-foreground: 340 40% 18%;
 
-    --primary: 12 80% 62%;
+    /* Primary = light maroon  (~hsl 345 55% 45%) */
+    --primary: 345 55% 45%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 16% 16%;
-    --secondary-foreground: 210 20% 90%;
+    /* Secondary = soft blush panel */
+    --secondary: 0 50% 88%;
+    --secondary-foreground: 340 40% 22%;
 
-    --muted: 220 14% 14%;
-    --muted-foreground: 215 15% 55%;
+    --muted: 0 40% 86%;
+    --muted-foreground: 340 25% 42%;
 
-    --accent: 174 60% 48%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent = light pink  (~hsl 350 80% 74%) */
+    --accent: 350 80% 74%;
+    --accent-foreground: 340 40% 18%;
 
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 14% 18%;
-    --input: 220 14% 18%;
-    --ring: 12 80% 62%;
+    --border: 0 30% 78%;
+    --input: 0 30% 78%;
+    --ring: 345 55% 45%;
 
     --radius: 0.75rem;
 
-    /* Phase colors */
+    /* Phase colours (unchanged) */
     --phase-menstrual: 0 65% 55%;
     --phase-follicular: 152 55% 48%;
     --phase-ovulatory: 38 85% 58%;
     --phase-luteal: 265 50% 58%;
 
-    /* Glass */
-    --glass-bg: 220 18% 11% / 0.6;
-    --glass-border: 220 14% 25% / 0.4;
+    /* Glass — white-tinted for light bg */
+    --glass-bg: 0 60% 97% / 0.55;
+    --glass-border: 0 30% 70% / 0.35;
 
-    --sidebar-background: 220 18% 9%;
-    --sidebar-foreground: 210 20% 95%;
-    --sidebar-primary: 12 80% 62%;
+    --sidebar-background: 0 80% 92%;
+    --sidebar-foreground: 340 40% 18%;
+    --sidebar-primary: 345 55% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 16% 16%;
-    --sidebar-accent-foreground: 210 20% 90%;
-    --sidebar-border: 220 14% 18%;
-    --sidebar-ring: 12 80% 62%;
+    --sidebar-accent: 0 50% 88%;
+    --sidebar-accent-foreground: 340 40% 22%;
+    --sidebar-border: 0 30% 78%;
+    --sidebar-ring: 345 55% 45%;
   }
 }
 
@@ -66,35 +71,64 @@
     @apply bg-background text-foreground font-body antialiased;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-display;
   }
 }
 
 @layer components {
   .glass-card {
-    @apply bg-card/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl;
+    @apply bg-white/30 backdrop-blur-xl border border-white/50 rounded-2xl shadow-xl;
   }
 
   .glass-card-strong {
-    @apply bg-card/80 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-2xl;
+    @apply bg-white/45 backdrop-blur-2xl border border-white/60 rounded-2xl shadow-2xl;
   }
 
+  /* Light maroon → light pink gradient */
   .gradient-primary {
-    @apply bg-gradient-to-r from-primary to-accent;
+    background: linear-gradient(135deg, hsl(345 55% 45%), hsl(350 80% 74%));
   }
 
   .gradient-text {
-    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+    background: linear-gradient(135deg, hsl(345 55% 45%), hsl(350 80% 74%));
+    @apply bg-clip-text text-transparent;
   }
 
-  .phase-menstrual { color: hsl(var(--phase-menstrual)); }
-  .phase-follicular { color: hsl(var(--phase-follicular)); }
-  .phase-ovulatory { color: hsl(var(--phase-ovulatory)); }
-  .phase-luteal { color: hsl(var(--phase-luteal)); }
+  .phase-menstrual {
+    color: hsl(var(--phase-menstrual));
+  }
 
-  .bg-phase-menstrual { background-color: hsl(var(--phase-menstrual)); }
-  .bg-phase-follicular { background-color: hsl(var(--phase-follicular)); }
-  .bg-phase-ovulatory { background-color: hsl(var(--phase-ovulatory)); }
-  .bg-phase-luteal { background-color: hsl(var(--phase-luteal)); }
+  .phase-follicular {
+    color: hsl(var(--phase-follicular));
+  }
+
+  .phase-ovulatory {
+    color: hsl(var(--phase-ovulatory));
+  }
+
+  .phase-luteal {
+    color: hsl(var(--phase-luteal));
+  }
+
+  .bg-phase-menstrual {
+    background-color: hsl(var(--phase-menstrual));
+  }
+
+  .bg-phase-follicular {
+    background-color: hsl(var(--phase-follicular));
+  }
+
+  .bg-phase-ovulatory {
+    background-color: hsl(var(--phase-ovulatory));
+  }
+
+  .bg-phase-luteal {
+    background-color: hsl(var(--phase-luteal));
+  }
 }
