@@ -54,8 +54,16 @@ const useAuthStore = create<AuthState>((set) => ({
   fetchProfile: async () => {
     try {
       const { data } = await api.get('/api/athlete/me');
+      
+      const athleteData = data.athlete;
+      let latestPlan = null;
+      if (athleteData?.workouts && athleteData.workouts.length > 0) {
+          latestPlan = athleteData.workouts[athleteData.workouts.length - 1];
+      }
+
       set({
-        athlete: data.athlete,
+        athlete: athleteData,
+        currentPlan: latestPlan,
         isAuthenticated: true,
         cycleInfo: {
           currentCycleDay: data.currentCycleDay,
