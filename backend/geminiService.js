@@ -17,7 +17,7 @@ export async function generateWorkoutPlan(
 
   let prompt = `
     You are an elite Olympic sports scientist and strength coach. 
-    You are designing a 6-day training split for an athlete.
+    You are designing a 7-day training split for an athlete.
     
     ATHLETE PROFILE:
     - Sport: ${userProfile.sport} (Focus on biomechanics of this sport)
@@ -45,8 +45,8 @@ ${
     : ''
 }
     INSTRUCTIONS:
-    1. Generate a 6-day workout plan in strict JSON format.
-    2. Incorporate 1 active recovery or rest day.
+    1. Generate a 7-day workout plan in strict JSON format.
+    2. Incorporate 2 active recovery or rest days.
     `;
 
   if (previousPlan && workoutRating) {

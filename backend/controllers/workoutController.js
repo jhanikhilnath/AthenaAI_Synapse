@@ -118,7 +118,7 @@ export async function generateWorkout(req, res) {
       });
     }
 
-    // numeric fields expected by FastAPI are integers; round any floats
+    // ensure integer values for ML
     [
       'cycle_length',
       'period_length',
@@ -131,6 +131,13 @@ export async function generateWorkout(req, res) {
         bioForMl[k] = Math.round(bioForMl[k]);
       }
     });
+
+    if (bioForMl.cycle_length < 10 || bioForMl.cycle_length > 40) {
+      bioForMl.cycle_length = getAveragePeriodLength(athlete) || 28;
+    }
+    if (bioForMl.period_length < 1 || bioForMl.period_length > 15) {
+      bioForMl.period_length = getAveragePeriodLength(athlete) || 5;
+    }
     // call ML service (sanitize biometrics first)
     let mlInput;
     try {
@@ -141,27 +148,36 @@ export async function generateWorkout(req, res) {
     // debug: show payload going to ML service
     console.log('ML payload for workout:', JSON.stringify(mlInput));
     const fetchStart = Date.now();
-    console.log('Calling ML service at', fetchStart);
-    const mlResponse = await fetch(process.env.FASTAPI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(mlInput),
-    });
-    const fetchEnd = Date.now();
-    console.log(
-      'ML service responded in',
-      fetchEnd - fetchStart,
-      'ms, status',
-      mlResponse.status,
-    );
+    let phaseData;
+    try {
+      const mlResponse = await fetch(process.env.FASTAPI_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(mlInput),
+      });
+      const fetchEnd = Date.now();
+      console.log(
+        'ML service responded in',
+        fetchEnd - fetchStart,
+        'ms, status',
+        mlResponse.status,
+      );
 
-    if (!mlResponse.ok) {
-      const text = await mlResponse.text();
-      console.error('ML service rejected payload:', text);
-      throw new Error(`FastAPI ML Service Error: ${mlResponse.statusText}`);
+      if (!mlResponse.ok) {
+        const text = await mlResponse.text();
+        console.error('ML service rejected payload:', text);
+        throw new Error(`FastAPI ML Service Error: ${mlResponse.statusText}`);
+      }
+      phaseData = await mlResponse.json();
+      console.log('ML service response (generateWorkout):', phaseData);
+    } catch (e) {
+      console.warn("ML Model is not callable or failed. Falling back to local biology...", e.message);
+      const localFallback = getCycleBiologyData(bioForMl.cycle_length);
+      phaseData = {
+        current_phase: localFallback.phase,
+        physiological_context: localFallback.description,
+      };
     }
-    const phaseData = await mlResponse.json();
-    console.log('ML service response (generateWorkout):', phaseData);
 
     // build local biology data using derived cycle length
     const cycleLengthValue = bioForMl.cycle_length;
@@ -306,6 +322,13 @@ export async function tweakWorkout(req, res) {
         bioForMl2[k] = Math.round(bioForMl2[k]);
       }
     });
+
+    if (bioForMl2.cycle_length < 10 || bioForMl2.cycle_length > 40) {
+      bioForMl2.cycle_length = getAveragePeriodLength(athlete) || 28;
+    }
+    if (bioForMl2.period_length < 1 || bioForMl2.period_length > 15) {
+      bioForMl2.period_length = getAveragePeriodLength(athlete) || 5;
+    }
     // get phase data (ensure proper fields)
     let mlInput2;
     try {
@@ -314,18 +337,28 @@ export async function tweakWorkout(req, res) {
       return res.status(400).json({ success: false, error: e.message });
     }
     console.log('ML payload for tweak:', JSON.stringify(mlInput2));
-    const mlResponse = await fetch(process.env.FASTAPI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(mlInput2),
-    });
-    if (!mlResponse.ok) {
-      const text2 = await mlResponse.text();
-      console.error('ML service rejected payload:', text2);
-      throw new Error(`FastAPI ML Service Error: ${mlResponse.statusText}`);
+    let phaseData;
+    try {
+      const mlResponse = await fetch(process.env.FASTAPI_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(mlInput2),
+      });
+      if (!mlResponse.ok) {
+        const text2 = await mlResponse.text();
+        console.error('ML service rejected payload:', text2);
+        throw new Error(`FastAPI ML Service Error: ${mlResponse.statusText}`);
+      }
+      phaseData = await mlResponse.json();
+      console.log('ML service response (tweakWorkout):', phaseData);
+    } catch (e) {
+      console.warn("ML Model is not callable or failed. Falling back to local biology...", e.message);
+      const localFallback = getCycleBiologyData(bioForMl2.cycle_length);
+      phaseData = {
+        current_phase: localFallback.phase,
+        physiological_context: localFallback.description,
+      };
     }
-    const phaseData = await mlResponse.json();
-    console.log('ML service response (tweakWorkout):', phaseData);
 
     // derive local biology and phase name for tweak
     const cycleLength2 = bioForMl2.cycle_length;
@@ -460,6 +493,13 @@ export async function uploadDetailedPlan(req, res) {
       }
     });
 
+    if (bioForMl3.cycle_length < 10 || bioForMl3.cycle_length > 40) {
+      bioForMl3.cycle_length = getAveragePeriodLength(athlete) || 28;
+    }
+    if (bioForMl3.period_length < 1 || bioForMl3.period_length > 15) {
+      bioForMl3.period_length = getAveragePeriodLength(athlete) || 5;
+    }
+
     // get phase data
     let mlInput3;
     try {
@@ -468,18 +508,28 @@ export async function uploadDetailedPlan(req, res) {
       return res.status(400).json({ success: false, error: e.message });
     }
     console.log('ML payload for upload:', JSON.stringify(mlInput3));
-    const mlResponse = await fetch(process.env.FASTAPI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(mlInput3),
-    });
-    if (!mlResponse.ok) {
-      const text3 = await mlResponse.text();
-      console.error('ML service rejected payload:', text3);
-      throw new Error(`FastAPI ML Service Error: ${mlResponse.statusText}`);
+    let phaseData;
+    try {
+      const mlResponse = await fetch(process.env.FASTAPI_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(mlInput3),
+      });
+      if (!mlResponse.ok) {
+        const text3 = await mlResponse.text();
+        console.error('ML service rejected payload:', text3);
+        throw new Error(`FastAPI ML Service Error: ${mlResponse.statusText}`);
+      }
+      phaseData = await mlResponse.json();
+      console.log('ML service response (uploadDetailedPlan):', phaseData);
+    } catch (e) {
+      console.warn("ML Model is not callable or failed. Falling back to local biology...", e.message);
+      const localFallback = getCycleBiologyData(bioForMl3.cycle_length);
+      phaseData = {
+        current_phase: localFallback.phase,
+        physiological_context: localFallback.description,
+      };
     }
-    const phaseData = await mlResponse.json();
-    console.log('ML service response (uploadDetailedPlan):', phaseData);
 
     // derive local biology
     const cycleLength3 = bioForMl3.cycle_length;
