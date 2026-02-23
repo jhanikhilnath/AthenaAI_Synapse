@@ -43,9 +43,9 @@
 
     /* Phase colours (unchanged) */
     --phase-menstrual: 0 65% 55%;
-    --phase-follicular: 152 55% 48%;
-    --phase-ovulatory: 38 85% 58%;
-    --phase-luteal: 265 50% 58%;
+    --phase-follicular: 350 80% 80%;
+    --phase-ovulatory: 43 85% 62%;
+    --phase-luteal: 280 60% 60%;
 
     /* Glass — white-tinted for light bg */
     --glass-bg: 0 60% 97% / 0.55;

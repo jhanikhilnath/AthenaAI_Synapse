@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import useAuthStore from '@/stores/useAuthStore';
+import heroBg from '@/assets/hero-bg.jpg';
 
 const sports = ['Soccer', 'Basketball', 'Tennis', 'Swimming', 'Running', 'CrossFit', 'Volleyball', 'Weightlifting', 'Cycling', 'Yoga', 'Boxing', 'Other'];
 
@@ -40,12 +41,19 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-background">
+    <div className="relative min-h-screen flex items-center justify-center px-4 py-10 bg-background overflow-hidden">
+      {/* Background image — same as landing page */}
+      <div className="absolute inset-0">
+        <img src={heroBg} alt="" className="w-full h-full object-cover opacity-70" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background" />
+      </div>
+
+      {/* Form card */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4 }}
-        className="glass-card-strong w-full max-w-md p-8"
+        className="relative z-10 glass-card-strong w-full max-w-md p-8"
       >
         <div className="text-center mb-8">
           <h1 className="text-3xl font-display font-bold gradient-text">AthenaAI</h1>
@@ -55,9 +63,7 @@ const Register = () => {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="name">Full Name</Label>
-            <div className="relative">
-              <Input id="name" type="text" placeholder="Jane Doe" value={name} onChange={(e) => setName(e.target.value)} className="bg-secondary border-border" />
-            </div>
+            <Input id="name" type="text" placeholder="Jane Doe" value={name} onChange={(e) => setName(e.target.value)} className="bg-secondary border-border" />
           </div>
 
           <div className="space-y-2">
