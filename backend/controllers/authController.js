@@ -4,7 +4,7 @@ import Athlete from '../models/Athlete.js';
 
 export async function register(req, res) {
   try {
-    const { email, password, sport, experienceLevel } = req.body;
+    const { name, email, password, sport, experienceLevel } = req.body;
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password required' });
     }
@@ -12,7 +12,7 @@ export async function register(req, res) {
     if (existing) {
       return res.status(409).json({ message: 'User already exists' });
     }
-    const athlete = new Athlete({ email, password, sport, experienceLevel });
+    const athlete = new Athlete({ name, email, password, sport, experienceLevel });
     await athlete.save();
     const token = jwt.sign(
       { id: athlete._id, email: athlete.email },

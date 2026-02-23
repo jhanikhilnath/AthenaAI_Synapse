@@ -57,6 +57,7 @@ const workoutSchema = new Schema(
 const athleteSchema = new Schema({
   email: { type: String, required: true, unique: true, lowercase: true },
   password: { type: String, required: true },
+  name: { type: String, required: false },
   sport: String,
   experienceLevel: String,
   biometricsHistory: [biometricsSchema],
@@ -65,8 +66,8 @@ const athleteSchema = new Schema({
   cycleHistory: [
     {
       start: { type: Date, required: true },
-      end: Date, // when the bleeding stopped
-      length: Number, // in days, calculated when end is set
+      end: Date, // when the cycle ends (day before next period)
+      length: Number, // cycle length in days, calculated when end is set
       bleedingDates: [Date], // individual days when blood flow was recorded
     },
   ],

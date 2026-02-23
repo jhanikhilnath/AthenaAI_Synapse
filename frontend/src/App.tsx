@@ -14,6 +14,7 @@ import WorkoutToday from "./pages/WorkoutToday";
 import Import from "./pages/Import";
 import CheckIn from "./pages/CheckIn";
 import Profile from "./pages/Profile";
+import LogPeriod from "./pages/LogPeriod";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/import" element={<ProtectedRoute><Import /></ProtectedRoute>} />
           <Route path="/check-in" element={<ProtectedRoute><CheckIn /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/log-period" element={<ProtectedRoute><LogPeriod /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

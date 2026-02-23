@@ -106,12 +106,9 @@ export async function logBleedingDay(req, res) {
         ).map(d => new Date(d));
         // do NOT set current.end or current.length until cycle closes
       } else {
-        // new cycle detected: close old using the last logged bleeding date
-        const sortedOldBleeds = sortDates(current.bleedingDates || [current.start]);
-        const lastBleedOfOldCycle = sortedOldBleeds[sortedOldBleeds.length - 1];
-        
-        current.end = new Date(lastBleedOfOldCycle);
-        current.length = daysBetween(new Date(current.start), current.end) + 1;
+        // new cycle detected: close old using the day before the new cycle starts
+        current.end = new Date(first.getTime() - 24 * 60 * 60 * 1000);
+        current.length = daysBetween(new Date(current.start), first);
         // start a fresh entry, open-ended
         history.push({
           start: first,
@@ -133,10 +130,12 @@ export async function logBleedingDay(req, res) {
             history[history.length - 1].start,
           )
         : athlete.cycle_length;
-    // period_length should reflect the most recently closed cycle (i.e. last entry with an end date)
+    // period_length should reflect the most recently closed cycle (i.e. length of bleeding phase)
     const closed = history.filter(c => c.end != null);
     if (closed.length > 0) {
-      athlete.period_length = closed[closed.length - 1].length;
+      const lastClosed = closed[closed.length - 1];
+      const sortedDates = sortDates(lastClosed.bleedingDates || [lastClosed.start]);
+      athlete.period_length = daysBetween(new Date(lastClosed.start), sortedDates[sortedDates.length - 1]) + 1;
     }
     athlete.current_cycle_day = athlete.getCurrentCycleDay?.();
 

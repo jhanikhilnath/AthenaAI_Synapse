@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { CalendarDays, Zap, Loader2, LogOut, Dumbbell, ClipboardList, Upload, MessageSquare } from 'lucide-react';
+import { CalendarDays, Zap, Loader2, LogOut, Dumbbell, ClipboardList, Upload, MessageSquare, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import useAuthStore from '@/stores/useAuthStore';
@@ -45,12 +45,20 @@ const Dashboard = () => {
       {/* Top Bar */}
       <header className="sticky top-0 z-50 glass-card rounded-none border-x-0 border-t-0 px-4 md:px-8 py-4 flex items-center justify-between">
         <div>
-          <h2 className="font-display font-bold text-lg gradient-text">AthenaAI</h2>
+          <h2 className="font-display font-bold text-lg gradient-text">
+            Welcome back, {athlete?.name?.split(' ')[0] || 'Athlete'}!
+          </h2>
           <p className="text-xs text-muted-foreground">{format(new Date(), 'EEEE, MMMM d')}</p>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="rounded-full text-xs text-primary border-primary" asChild>
+            <Link to="/log-period">Log Period</Link>
+          </Button>
           <Button variant="outline" size="sm" className="rounded-full text-xs" asChild>
             <Link to="/setup">Log Biometrics</Link>
+          </Button>
+          <Button variant="ghost" size="icon" asChild className="text-muted-foreground">
+            <Link to="/profile"><User className="w-4 h-4" /></Link>
           </Button>
           <Button variant="ghost" size="icon" onClick={handleLogout} className="text-muted-foreground">
             <LogOut className="w-4 h-4" />
@@ -98,7 +106,7 @@ const Dashboard = () => {
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card p-8 text-center">
                 <Zap className="w-12 h-12 text-primary mx-auto mb-4" />
                 <h3 className="font-display font-bold text-xl mb-2">Generate Your Weekly Plan</h3>
-                <p className="text-sm text-muted-foreground mb-6">Our AI will create a cycle-synced 6-day plan tailored to your biology.</p>
+                <p className="text-sm text-muted-foreground mb-6">Our AI will create a cycle-synced 7-day plan tailored to your biology.</p>
                 <Button onClick={generatePlan} disabled={generating} className="gradient-primary border-0 text-primary-foreground rounded-full px-8 py-5">
                   {generating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Zap className="w-4 h-4 mr-2" />}
                   Generate Plan

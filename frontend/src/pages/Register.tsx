@@ -13,6 +13,7 @@ import useAuthStore from '@/stores/useAuthStore';
 const sports = ['Soccer', 'Basketball', 'Tennis', 'Swimming', 'Running', 'CrossFit', 'Volleyball', 'Weightlifting', 'Cycling', 'Yoga', 'Boxing', 'Other'];
 
 const Register = () => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [sport, setSport] = useState('');
@@ -28,7 +29,7 @@ const Register = () => {
     if (!sport) { toast({ title: 'Select your sport', variant: 'destructive' }); return; }
     setLoading(true);
     try {
-      await register({ email, password, sport, experienceLevel });
+      await register({ name, email, password, sport, experienceLevel });
       await fetchProfile();
       navigate('/setup');
     } catch (err: any) {
@@ -52,6 +53,13 @@ const Register = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="name">Full Name</Label>
+            <div className="relative">
+              <Input id="name" type="text" placeholder="Jane Doe" value={name} onChange={(e) => setName(e.target.value)} className="bg-secondary border-border" />
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <div className="relative">

@@ -4,10 +4,12 @@ import api from '@/lib/api';
 interface Athlete {
   _id: string;
   email: string;
+  name?: string;
   sport?: string;
   experienceLevel?: string;
-  history?: any[];
+  cycleHistory?: any[];
   workouts?: any[];
+  biometricsHistory?: any[];
 }
 
 interface CycleInfo {
@@ -26,7 +28,7 @@ interface AuthState {
   loading: boolean;
 
   login: (email: string, password: string) => Promise<void>;
-  register: (data: { email: string; password: string; sport: string; experienceLevel: string }) => Promise<void>;
+  register: (data: { name: string; email: string; password: string; sport: string; experienceLevel: string }) => Promise<void>;
   fetchProfile: () => Promise<void>;
   fetchCycleInfo: () => Promise<void>;
   setCurrentPlan: (plan: any) => void;
