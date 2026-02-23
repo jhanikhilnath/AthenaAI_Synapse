@@ -1,17 +1,18 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-import numpy as np
+import pandas as pd
 import joblib
-from tensorflow.keras.models import load_model
 
 app = FastAPI(title="Athena AI Engine")
 
-print("⏳ Loading Model and Scaler...")
-model = load_model('athena_lifestyle_forecaster_v3.h5', compile=False)
-scaler = joblib.load('athena_scaler.pkl')
+print("⏳ Loading Random Forest Model...")
+model = joblib.load('athena_rf_forecaster.pkl')
+scaler = joblib.load('athena_rf_scaler.pkl')
+# Load the feature names saved during training so we match the exact order
+expected_features = model.feature_names_in_
 print("✅ Athena Core Online.")
 
-# 1. DEFINE THE INCOMING JSON SCHEMA
+# 1. DEFINE THE INCOMING JSON SCHEMA (Matches Node.js exactly)
 
 
 class UserBiometrics(BaseModel):
@@ -19,21 +20,18 @@ class UserBiometrics(BaseModel):
     bmi: float
     sleep_hours: float
     stress_level: int
-    cycle_length: int
-    period_length: int
-    current_cycle_day: int  # Where they are TODAY
-    exercise_frequency: str  # "Low", "Moderate", "High"
-    diet: str               # "Balanced", "Vegetarian", "High Sugar", "Low Carb"
-    symptoms: str           # "None", "Cramps", "Mood Swings"
-    weight: float           # optional additional features added after training
-    height: float
+    cycle_length: float
+    period_length: float
+    current_cycle_day: int
+    exercise_frequency: str
+    diet: str
+    symptoms: str
 
 # 2. THE RULE ENGINE (Phase Calculator)
 
 
 def get_current_phase(current_day: int, predicted_length: float):
     ovulation_day = round(predicted_length - 14)
-
     if 1 <= current_day <= 5:
         return "Menstruation", "Low estrogen. Focus on baseline maintenance and mobility."
     elif 6 <= current_day <= (ovulation_day - 2):
@@ -51,38 +49,40 @@ def get_current_phase(current_day: int, predicted_length: float):
 @app.post("/predict-phase")
 def predict_phase(data: UserBiometrics):
     try:
-        # Step A: Manual One-Hot Encoding
-        # This exact order MUST match how the dataframe columns were arranged in training!
-        exercise_low = 1 if data.exercise_frequency == "Low" else 0
-        exercise_mod = 1 if data.exercise_frequency == "Moderate" else 0
-        exercise_high = 1 if data.exercise_frequency == "High" else 0
-
-        diet_bal = 1 if data.diet == "Balanced" else 0
-        diet_veg = 1 if data.diet == "Vegetarian" else 0
-        diet_sugar = 1 if data.diet == "High Sugar" else 0
-        diet_carb = 1 if data.diet == "Low Carb" else 0
-
-        symp_none = 1 if data.symptoms == "None" else 0
-        symp_cramps = 1 if data.symptoms == "Cramps" else 0
-        symp_mood = 1 if data.symptoms == "Mood Swings" else 0
-
+        # Calculate our custom Burnout feature
         burnout_index = data.stress_level * (24 - data.sleep_hours)
 
-        # Step B: Assemble the Feature Array
-        raw_features = np.array([[
-            data.age, data.bmi, data.sleep_hours, data.stress_level,
-            data.cycle_length, data.period_length, burnout_index,
-            exercise_high, exercise_low, exercise_mod,
-            diet_bal, diet_sugar, diet_carb, diet_veg,
-            symp_cramps, symp_mood, symp_none,
-            data.weight, data.height
-        ]])
+        # Create a dictionary matching the base Kaggle columns
+        input_data = {
+            'Age': [data.age],
+            'BMI': [data.bmi],
+            'Sleep Hours': [data.sleep_hours],
+            'Stress Level': [data.stress_level],
+            # Note: this gets mapped to your synthetic feature
+            'Cycle Length': [data.cycle_length],
+            'Period Length': [data.period_length],
+            'Burnout_Index': [burnout_index],
+            f'Exercise Frequency_{data.exercise_frequency}': [1],
+            f'Diet_{data.diet}': [1],
+            f'Symptoms_{data.symptoms}': [1]
+        }
 
-        # Step C: Scale and Predict
-        scaled_features = scaler.transform(raw_features)
-        predicted_length = float(model.predict(scaled_features)[0][0])
+        # Convert to DataFrame
+        df_input = pd.DataFrame(input_data)
 
-        # Step D: Calculate the Phase
+        # Ensure all expected columns exist (fill missing dummy columns with 0)
+        for col in expected_features:
+            if col not in df_input.columns:
+                df_input[col] = 0
+
+        # Enforce exact column order
+        df_input = df_input[expected_features]
+
+        # Scale and Predict
+        scaled_features = scaler.transform(df_input)
+        predicted_length = float(model.predict(scaled_features)[0])
+
+        # Calculate the Phase
         phase_name, phase_context = get_current_phase(
             data.current_cycle_day, predicted_length)
 
@@ -93,4 +93,6 @@ def predict_phase(data: UserBiometrics):
         }
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))

@@ -159,7 +159,7 @@ export async function getCycleInfo(req, res) {
 
     const avgCycle = athlete.getAverageCycleLength();
     const lastStart = (athlete.cycleHistory || []).slice(-1)[0]?.start;
-    const nextStart = athlete.getPredictedNextPeriodStart();
+    let nextStart = athlete.getPredictedNextPeriodStart();
 
     let ovulation = null;
     let fertileWindow = null;
@@ -238,6 +238,17 @@ export async function getCycleInfo(req, res) {
             console.log('ML service response (getCycleInfo):', phaseData);
             currentPhase = phaseData.current_phase;
             physiologicalContext = phaseData.physiological_context;
+
+            if (typeof phaseData.predicted_cycle_length === 'number') {
+              nextStart = athlete.getPredictedNextPeriodStart(phaseData.predicted_cycle_length);
+              if (nextStart) {
+                ovulation = new Date(nextStart.getTime() - 14 * 24 * 60 * 60 * 1000);
+                fertileWindow = {
+                  start: new Date(ovulation.getTime() - 2 * 24 * 60 * 60 * 1000),
+                  end: new Date(ovulation.getTime() + 2 * 24 * 60 * 60 * 1000),
+                };
+              }
+            }
           }
         } catch (e) {
           console.warn('Unable to compute phase data:', e.message);

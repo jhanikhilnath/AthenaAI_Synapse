@@ -113,11 +113,12 @@ athleteSchema.methods.getAverageCycleLength = function () {
 // but we now prefer any cycle‑length prediction produced by our ML model (stored in the
 // most recent workout's phaseData). fall back to the average interval if no prediction is
 // available.
-athleteSchema.methods.getPredictedNextPeriodStart = function () {
+athleteSchema.methods.getPredictedNextPeriodStart = function (overridePredictedLength = null) {
   // check for a cached prediction from the last workout
-  let predictedLength = null;
+  let predictedLength = overridePredictedLength;
   const lastWorkout = (this.workouts || []).slice(-1)[0];
   if (
+    predictedLength == null &&
     lastWorkout &&
     lastWorkout.phaseData &&
     typeof lastWorkout.phaseData.predicted_cycle_length === 'number'
@@ -133,7 +134,7 @@ athleteSchema.methods.getPredictedNextPeriodStart = function () {
   // sanity check: cycle lengths over, say, 90 days are unlikely – clamp or ignore
   if (
     predictedLength != null &&
-    (predictedLength < 7 || predictedLength > 35)
+    (predictedLength < 7 || predictedLength > 40)
   ) {
     console.warn(
       `Predicted cycle length ${predictedLength} out of bounds, using average instead`,

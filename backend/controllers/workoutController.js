@@ -66,8 +66,8 @@ function prepareForMl(bio) {
       payload[key] = 'High';
       continue;
     }
-    if (key === "diet") {
-      payload[key] = "Balanced";
+    if (key === 'diet') {
+      payload[key] = 'Balanced';
       continue;
     }
     if (bio[key] === undefined || bio[key] === null) {
@@ -75,6 +75,7 @@ function prepareForMl(bio) {
     }
     payload[key] = bio[key];
   }
+  console.log(payload);
   return payload;
 }
 
@@ -218,7 +219,7 @@ export async function generateWorkout(req, res) {
     // prediction based on stored cycle history
     const nextPeriod =
       athlete.getPredictedNextPeriodStart &&
-      athlete.getPredictedNextPeriodStart();
+      athlete.getPredictedNextPeriodStart(phaseData?.predicted_cycle_length);
 
     // if we have a previous workout, hand its plan to the generator so it can
     // maintain continuity (avoiding jarring exercise swaps between successive
@@ -415,7 +416,7 @@ export async function tweakWorkout(req, res) {
     // prediction based on cycle history
     const nextPeriod =
       athlete.getPredictedNextPeriodStart &&
-      athlete.getPredictedNextPeriodStart();
+      athlete.getPredictedNextPeriodStart(phaseData?.predicted_cycle_length);
 
     const newPlan = await generateWorkoutPlan(
       userProfile,
@@ -592,7 +593,7 @@ export async function uploadDetailedPlan(req, res) {
     // prediction based on cycle history
     const nextPeriod =
       athlete.getPredictedNextPeriodStart &&
-      athlete.getPredictedNextPeriodStart();
+      athlete.getPredictedNextPeriodStart(phaseData?.predicted_cycle_length);
 
     const newPlan = await parseAndImproveWorkoutPlan(
       textPlan,
