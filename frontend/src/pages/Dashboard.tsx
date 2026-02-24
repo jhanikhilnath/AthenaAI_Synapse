@@ -8,7 +8,6 @@ import useAuthStore from '@/stores/useAuthStore';
 import CycleRing from '@/components/CycleRing';
 import api from '@/lib/api';
 import { format } from 'date-fns';
-import athleteBanner from '@/assets/athlete-banner.png';
 import yogaWarrior from '@/assets/yoga-warrior.png';
 
 const QUOTES = [
@@ -114,23 +113,6 @@ const Dashboard = () => {
       </header>
 
       <main className="relative z-10 max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-8">
-
-        {/* ── Athlete illustration banner ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="relative overflow-hidden rounded-2xl shadow-xl"
-          style={{ minHeight: 160 }}
-        >
-          <img src={athleteBanner} alt="Athlete" className="w-full h-48 object-cover object-top" />
-          <div className="absolute inset-0 bg-gradient-to-r from-background/70 via-background/30 to-transparent flex items-center px-8">
-            <div>
-              <h3 className="text-2xl font-display font-bold gradient-text">Your Journey</h3>
-              <p className="text-sm text-muted-foreground mt-1">Cycle-synced · AI-powered · Built for you</p>
-            </div>
-          </div>
-        </motion.div>
 
         {/* ── Main grid: Cycle ring + Actions ── */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="grid md:grid-cols-2 gap-8">

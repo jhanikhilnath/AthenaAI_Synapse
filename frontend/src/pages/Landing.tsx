@@ -3,26 +3,22 @@ import { Link } from 'react-router-dom';
 import { Zap, Brain, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import heroBg from '@/assets/hero-bg.jpg';
-import sportIcons from '@/assets/sport-icons.png';
 
 const features = [
   {
     icon: Activity,
-    emoji: '🔄',
     title: 'Cycle-Synced Training',
     description:
       'Workouts that adapt to your menstrual phase for peak performance and recovery.',
   },
   {
     icon: Brain,
-    emoji: '🧠',
     title: 'AI Coaching',
     description:
       'An elite AI sports scientist adjusts volume, intensity, and exercises just for you.',
   },
   {
     icon: Zap,
-    emoji: '⚡',
     title: 'Daily Adaptation',
     description:
       'Log biometrics daily and watch your plan evolve with your body in real-time.',
@@ -94,15 +90,6 @@ const Landing = () => {
       {/* Features */}
       <section className='py-8 px-6 relative z-10'>
         <div className='max-w-6xl mx-auto'>
-          {/* Sport icons illustration */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className='flex justify-center mb-8'
-          >
-            <img src={sportIcons} alt='Sport icons' className='h-24 object-contain opacity-85' />
-          </motion.div>
 
           <motion.h2
             initial={{ opacity: 0 }}
@@ -127,7 +114,6 @@ const Landing = () => {
                 <div className='w-14 h-14 rounded-2xl gradient-primary flex items-center justify-center mx-auto mb-3'>
                   <f.icon className='w-7 h-7 text-primary-foreground' />
                 </div>
-                <div className='text-3xl mb-3'>{f.emoji}</div>
                 <h3 className='text-xl font-display font-semibold mb-3'>
                   {f.title}
                 </h3>
@@ -140,10 +126,123 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Pricing */}
+      <section className='py-16 px-6 relative z-10'>
+        <div className='max-w-6xl mx-auto'>
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className='text-center mb-12'
+          >
+            <h2 className='text-3xl md:text-4xl font-display font-bold mb-3'>
+              Simple <span className='gradient-text'>Pricing</span>
+            </h2>
+            <p className='text-muted-foreground text-sm'>Choose the plan that fits your training goals.</p>
+          </motion.div>
+
+          <div className='grid md:grid-cols-3 gap-6'>
+            {/* Free */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0 }}
+              whileHover={{ y: -4 }}
+              className='glass-card p-7 flex flex-col border-2 border-primary/30'
+            >
+              <p className='text-xs text-muted-foreground mb-2'>For Individuals</p>
+              <h3 className='text-4xl font-display font-bold mb-3'>Free</h3>
+              <p className='text-sm text-muted-foreground mb-6'>Get started with smart, cycle-aware training.</p>
+              <a href='/register' className='block w-full text-center py-2.5 rounded-full font-semibold text-sm text-white mb-8 transition-opacity hover:opacity-90' style={{ background: 'linear-gradient(135deg, hsl(345 55% 45%), hsl(350 80% 74%))' }}>
+                Create account
+              </a>
+              <ul className='space-y-3 flex-1'>
+                {['Cycle-dependent training plan', 'Sport-specific customization', 'Regular training reminders'].map(f => (
+                  <li key={f} className='flex items-start gap-3'>
+                    <svg className='w-5 h-5 shrink-0 mt-0.5' style={{ color: 'hsl(345 55% 45%)' }} fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                    <span className='text-sm text-foreground/80'>{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+
+            {/* Individual — highlighted */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.12 }}
+              whileHover={{ y: -4 }}
+              className='glass-card p-7 flex flex-col border-2 relative overflow-hidden'
+              style={{ borderColor: 'hsl(345 55% 45%)' }}
+            >
+              {/* Popular badge */}
+              <div className='absolute top-4 right-4 text-xs font-bold text-white px-2.5 py-1 rounded-full' style={{ background: 'linear-gradient(135deg, hsl(345 55% 45%), hsl(350 80% 74%))' }}>
+                Popular
+              </div>
+              <p className='text-xs text-muted-foreground mb-2'>For Individuals or teams</p>
+              <h3 className='text-4xl font-display font-bold mb-3'>Individual</h3>
+              <p className='text-sm text-muted-foreground mb-4'>Achieve peak performance with AI-driven insights.</p>
+              <div className='mb-6'>
+                <div className='flex items-baseline gap-1'>
+                  <span className='text-4xl font-bold gradient-text'>₹300</span>
+                  <span className='text-lg font-semibold gradient-text'>INR</span>
+                </div>
+                <span className='text-xs text-muted-foreground'>/ month, billed annually</span>
+              </div>
+              <a href='/register' className='block w-full text-center py-2.5 rounded-full font-semibold text-sm text-white mb-8 transition-opacity hover:opacity-90' style={{ background: 'linear-gradient(135deg, hsl(345 55% 45%), hsl(350 80% 74%))' }}>
+                Get started
+              </a>
+              <ul className='space-y-3 flex-1'>
+                {['Dynamic AI feedback on current program', 'Customized diet plan for specific body metrics', 'Overtraining monitoring'].map(f => (
+                  <li key={f} className='flex items-start gap-3'>
+                    <svg className='w-5 h-5 shrink-0 mt-0.5' style={{ color: 'hsl(345 55% 45%)' }} fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                    <span className='text-sm text-foreground/80'>{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+
+            {/* Team */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.24 }}
+              whileHover={{ y: -4 }}
+              className='glass-card p-7 flex flex-col border-2 border-primary/30'
+            >
+              <p className='text-xs text-muted-foreground mb-2'>For larger organizations</p>
+              <h3 className='text-4xl font-display font-bold mb-3'>Team</h3>
+              <p className='text-sm text-muted-foreground mb-6'>Drive results across your entire squad with trusted AI.</p>
+              <a href='mailto:contact@athenaai.in' className='block w-full text-center py-2.5 rounded-full font-semibold text-sm text-white mb-8 transition-opacity hover:opacity-90' style={{ background: 'linear-gradient(135deg, hsl(345 55% 45%), hsl(350 80% 74%))' }}>
+                Contact Sales
+              </a>
+              <ul className='space-y-3 flex-1'>
+                {['Multiple accounts for large teams', 'Coach receives live training status', 'Notifications for player readiness', 'AI-generated team training schedules'].map(f => (
+                  <li key={f} className='flex items-start gap-3'>
+                    <svg className='w-5 h-5 shrink-0 mt-0.5' style={{ color: 'hsl(345 55% 45%)' }} fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                    <span className='text-sm text-foreground/80'>{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className='py-8 px-6 border-t border-border/30 text-center text-muted-foreground text-sm'>
         © 2026 AthenaAI · Training synced with your biology
       </footer>
+
     </div>
   );
 };
