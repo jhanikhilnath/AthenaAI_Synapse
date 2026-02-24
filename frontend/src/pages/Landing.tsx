@@ -27,14 +27,27 @@ const features = [
 
 const Landing = () => {
   return (
-    <div className='min-h-screen bg-background'>
+    <div className='relative min-h-screen bg-background overflow-hidden'>
+      {/* Floating blobs */}
+      <motion.div
+        className='absolute w-96 h-96 rounded-full blur-3xl pointer-events-none'
+        style={{ background: 'hsl(345 55% 60% / 0.22)', top: '-60px', right: '-80px' }}
+        animate={{ scale: [1, 1.12, 1], opacity: [0.3, 0.5, 0.3] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className='absolute w-64 h-64 rounded-full blur-3xl pointer-events-none'
+        style={{ background: 'hsl(350 80% 74% / 0.2)', bottom: '120px', left: '-40px' }}
+        animate={{ scale: [1, 1.18, 1], opacity: [0.25, 0.45, 0.25] }}
+        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+      />
       {/* Hero */}
       <section className='relative min-h-screen flex items-center justify-center overflow-hidden'>
         <div className='absolute inset-0'>
           <img
             src={heroBg}
             alt='Athlete in motion'
-            className='w-full h-full object-cover opacity-40'
+            className='w-full h-full object-cover opacity-70'
           />
           <div className='absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background' />
         </div>
@@ -75,13 +88,14 @@ const Landing = () => {
       </section>
 
       {/* Features */}
-      <section className='py-24 px-6'>
+      <section className='py-8 px-6 relative z-10'>
         <div className='max-w-6xl mx-auto'>
+
           <motion.h2
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className='text-3xl md:text-4xl font-display font-bold text-center mb-16'
+            className='text-3xl md:text-4xl font-display font-bold text-center mb-12'
           >
             Why <span className='gradient-text'>AthenaAI</span>?
           </motion.h2>
@@ -94,9 +108,10 @@ const Landing = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.15 }}
-                className='glass-card p-8 text-center group hover:border-primary/30 transition-colors'
+                whileHover={{ scale: 1.03, y: -4 }}
+                className='glass-card p-8 text-center group hover:border-primary/30 transition-colors cursor-default'
               >
-                <div className='w-14 h-14 rounded-2xl gradient-primary flex items-center justify-center mx-auto mb-6 group-hover:animate-pulse-glow transition-shadow'>
+                <div className='w-14 h-14 rounded-2xl gradient-primary flex items-center justify-center mx-auto mb-3'>
                   <f.icon className='w-7 h-7 text-primary-foreground' />
                 </div>
                 <h3 className='text-xl font-display font-semibold mb-3'>
@@ -111,10 +126,123 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Pricing */}
+      <section className='py-16 px-6 relative z-10'>
+        <div className='max-w-6xl mx-auto'>
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className='text-center mb-12'
+          >
+            <h2 className='text-3xl md:text-4xl font-display font-bold mb-3'>
+              Simple <span className='gradient-text'>Pricing</span>
+            </h2>
+            <p className='text-muted-foreground text-sm'>Choose the plan that fits your training goals.</p>
+          </motion.div>
+
+          <div className='grid md:grid-cols-3 gap-6'>
+            {/* Free */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0 }}
+              whileHover={{ y: -4 }}
+              className='glass-card p-7 flex flex-col border-2 border-primary/30'
+            >
+              <p className='text-xs text-muted-foreground mb-2'>For Individuals</p>
+              <h3 className='text-4xl font-display font-bold mb-3'>Free</h3>
+              <p className='text-sm text-muted-foreground mb-6'>Get started with smart, cycle-aware training.</p>
+              <a href='/register' className='block w-full text-center py-2.5 rounded-full font-semibold text-sm text-white mb-8 transition-opacity hover:opacity-90' style={{ background: 'linear-gradient(135deg, hsl(345 55% 45%), hsl(350 80% 74%))' }}>
+                Create account
+              </a>
+              <ul className='space-y-3 flex-1'>
+                {['Cycle-dependent training plan', 'Sport-specific customization', 'Regular training reminders'].map(f => (
+                  <li key={f} className='flex items-start gap-3'>
+                    <svg className='w-5 h-5 shrink-0 mt-0.5' style={{ color: 'hsl(345 55% 45%)' }} fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                    <span className='text-sm text-foreground/80'>{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+
+            {/* Individual — highlighted */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.12 }}
+              whileHover={{ y: -4 }}
+              className='glass-card p-7 flex flex-col border-2 relative overflow-hidden'
+              style={{ borderColor: 'hsl(345 55% 45%)' }}
+            >
+              {/* Popular badge */}
+              <div className='absolute top-4 right-4 text-xs font-bold text-white px-2.5 py-1 rounded-full' style={{ background: 'linear-gradient(135deg, hsl(345 55% 45%), hsl(350 80% 74%))' }}>
+                Popular
+              </div>
+              <p className='text-xs text-muted-foreground mb-2'>For Individuals or teams</p>
+              <h3 className='text-4xl font-display font-bold mb-3'>Individual</h3>
+              <p className='text-sm text-muted-foreground mb-4'>Achieve peak performance with AI-driven insights.</p>
+              <div className='mb-6'>
+                <div className='flex items-baseline gap-1'>
+                  <span className='text-4xl font-bold gradient-text'>₹300</span>
+                  <span className='text-lg font-semibold gradient-text'>INR</span>
+                </div>
+                <span className='text-xs text-muted-foreground'>/ month, billed annually</span>
+              </div>
+              <a href='/register' className='block w-full text-center py-2.5 rounded-full font-semibold text-sm text-white mb-8 transition-opacity hover:opacity-90' style={{ background: 'linear-gradient(135deg, hsl(345 55% 45%), hsl(350 80% 74%))' }}>
+                Get started
+              </a>
+              <ul className='space-y-3 flex-1'>
+                {['Dynamic AI feedback on current program', 'Customized diet plan for specific body metrics', 'Overtraining monitoring'].map(f => (
+                  <li key={f} className='flex items-start gap-3'>
+                    <svg className='w-5 h-5 shrink-0 mt-0.5' style={{ color: 'hsl(345 55% 45%)' }} fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                    <span className='text-sm text-foreground/80'>{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+
+            {/* Team */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.24 }}
+              whileHover={{ y: -4 }}
+              className='glass-card p-7 flex flex-col border-2 border-primary/30'
+            >
+              <p className='text-xs text-muted-foreground mb-2'>For larger organizations</p>
+              <h3 className='text-4xl font-display font-bold mb-3'>Team</h3>
+              <p className='text-sm text-muted-foreground mb-6'>Drive results across your entire squad with trusted AI.</p>
+              <a href='mailto:contact@athenaai.in' className='block w-full text-center py-2.5 rounded-full font-semibold text-sm text-white mb-8 transition-opacity hover:opacity-90' style={{ background: 'linear-gradient(135deg, hsl(345 55% 45%), hsl(350 80% 74%))' }}>
+                Contact Sales
+              </a>
+              <ul className='space-y-3 flex-1'>
+                {['Multiple accounts for large teams', 'Coach receives live training status', 'Notifications for player readiness', 'AI-generated team training schedules'].map(f => (
+                  <li key={f} className='flex items-start gap-3'>
+                    <svg className='w-5 h-5 shrink-0 mt-0.5' style={{ color: 'hsl(345 55% 45%)' }} fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                    <span className='text-sm text-foreground/80'>{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className='py-8 px-6 border-t border-border/30 text-center text-muted-foreground text-sm'>
         © 2026 AthenaAI · Training synced with your biology
       </footer>
+
     </div>
   );
 };

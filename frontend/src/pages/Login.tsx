@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import useAuthStore from '@/stores/useAuthStore';
+import heroBg from '@/assets/hero-bg.jpg';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -32,12 +33,19 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-background">
+    <div className="relative min-h-screen flex items-center justify-center px-4 bg-background overflow-hidden">
+      {/* Background image — same as landing page */}
+      <div className="absolute inset-0">
+        <img src={heroBg} alt="" className="w-full h-full object-cover opacity-70" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background" />
+      </div>
+
+      {/* Form card */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4 }}
-        className="glass-card-strong w-full max-w-md p-8"
+        className="relative z-10 glass-card-strong w-full max-w-md p-8"
       >
         <div className="text-center mb-8">
           <h1 className="text-3xl font-display font-bold gradient-text">AthenaAI</h1>

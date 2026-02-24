@@ -56,24 +56,25 @@ const useAuthStore = create<AuthState>((set) => ({
   fetchProfile: async () => {
     try {
       const { data } = await api.get('/api/athlete/me');
-      
+
       const athleteData = data.athlete;
       let latestPlan = null;
       if (athleteData?.workouts && athleteData.workouts.length > 0) {
-          latestPlan = athleteData.workouts[athleteData.workouts.length - 1];
+        latestPlan = athleteData.workouts[athleteData.workouts.length - 1];
       }
 
-      set({
+      set((state) => ({
         athlete: athleteData,
         currentPlan: latestPlan,
         isAuthenticated: true,
         cycleInfo: {
           currentCycleDay: data.currentCycleDay,
           predictedNextPeriodStart: data.predictedNextPeriodStart,
-          currentPhase: null,
-          physiologicalContext: undefined,
+          currentPhase: state.cycleInfo?.currentPhase ?? null,
+          physiologicalContext: state.cycleInfo?.physiologicalContext ?? undefined,
+          averageCycleLength: state.cycleInfo?.averageCycleLength ?? undefined,
         },
-      });
+      }));
     } catch {
       set({ isAuthenticated: false, athlete: null });
     }
@@ -82,15 +83,16 @@ const useAuthStore = create<AuthState>((set) => ({
   fetchCycleInfo: async () => {
     try {
       const { data } = await api.get('/api/periods');
-      set({
+      set((state) => ({
         cycleInfo: {
-          currentCycleDay: data.currentCycleDay,
-          predictedNextPeriodStart: data.predictedNextPeriodStart,
+          ...state.cycleInfo,
+          currentCycleDay: data.currentCycleDay ?? state.cycleInfo?.currentCycleDay,
+          predictedNextPeriodStart: data.predictedNextPeriodStart ?? state.cycleInfo?.predictedNextPeriodStart,
           currentPhase: data.currentPhase,
           physiologicalContext: data.physiologicalContext,
           averageCycleLength: data.averageCycleLength,
         },
-      });
+      }));
     } catch {
       // silent
     }

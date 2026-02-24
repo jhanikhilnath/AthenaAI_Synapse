@@ -1,68 +1,141 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Loader2, Moon, Heart, Brain, Scale, Ruler, User } from 'lucide-react';
+import { ArrowLeft, Loader2, Moon, Brain, Scale, Ruler, User, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import useAuthStore from '@/stores/useAuthStore';
 import api from '@/lib/api';
 
-const moods = ['Happy', 'Neutral', 'Irritable', 'Sad', 'Anxious'];
-const symptoms = ['None', 'Cramps', 'Mood Swings'];
-const exercise_frequencies = ['Low', 'Moderate', 'High'];
-const diets = ['Balanced', 'Vegetarian', 'High Sugar', 'Low Carb'];
+const GRADIENT = 'linear-gradient(135deg, hsl(345 55% 45%), hsl(350 80% 74%))';
+
+const MOODS = ['Happy', 'Neutral', 'Irritable', 'Sad', 'Anxious'].map(v => ({ value: v }));
+const SYMPTOMS = ['None', 'Cramps', 'Mood Swings'].map(v => ({ value: v }));
+const FREQUENCIES = [
+  { value: 'Low', label: 'Low', sub: '1–2×/wk' },
+  { value: 'Moderate', label: 'Moderate', sub: '3–4×/wk' },
+  { value: 'High', label: 'High', sub: '5+×/wk' },
+];
+const DIETS = ['Balanced', 'Vegetarian', 'High Sugar', 'Low Carb'].map(v => ({ value: v }));
+
+// Pill selector component
+const PillGroup = ({
+  options, value, onChange,
+}: {
+  options: { value: string; emoji?: string; label?: string; sub?: string }[];
+  value: string;
+  onChange: (v: string) => void;
+}) => (
+  <div className="flex flex-wrap gap-2">
+    {options.map((o) => {
+      const sel = value === o.value;
+      return (
+        <button
+          key={o.value}
+          type="button"
+          onClick={() => onChange(o.value)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-150"
+          style={{
+            background: sel ? GRADIENT : 'transparent',
+            color: sel ? '#fff' : undefined,
+            borderColor: sel ? 'transparent' : 'hsl(var(--border))',
+            boxShadow: sel ? '0 2px 10px hsl(345 55% 45% / 0.3)' : 'none',
+            transform: sel ? 'scale(1.06)' : 'scale(1)',
+          }}
+        >
+          <span>{o.label ?? o.value}</span>
+          {o.sub && <span className="opacity-70 ml-0.5">{o.sub}</span>}
+        </button>
+      );
+    })}
+  </div>
+);
+
+// Gradient range slider
+const GradientSlider = ({
+  value, min, max, step, onChange,
+  leftColor = '#22c55e', rightColor = '#ef4444',
+}: {
+  value: number; min: number; max: number; step: number;
+  onChange: (v: number) => void;
+  leftColor?: string; rightColor?: string;
+}) => {
+  const pct = ((value - min) / (max - min)) * 100;
+  return (
+    <div className="relative py-2">
+      <div className="h-2.5 rounded-full overflow-hidden relative"
+        style={{ background: `linear-gradient(to right, ${leftColor}, ${rightColor})` }}>
+        <div className="absolute inset-y-0 right-0 bg-white/40 rounded-full transition-all duration-150"
+          style={{ width: `${100 - pct}%` }} />
+      </div>
+      <input
+        type="range" min={min} max={max} step={step} value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="absolute inset-0 w-full opacity-0 cursor-pointer h-full"
+        style={{ zIndex: 2 }}
+      />
+      {/* Thumb */}
+      <div
+        className="absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full border-2 border-white shadow-md pointer-events-none"
+        style={{
+          left: `calc(${pct}% - ${pct * 0.1}px)`, zIndex: 3,
+          background: `linear-gradient(135deg, ${leftColor}, ${rightColor})`
+        }}
+      />
+    </div>
+  );
+};
+
+const Section = ({ icon: Icon, title, children }: {
+  icon: React.ElementType; title: string; children: React.ReactNode;
+}) => (
+  <div className="rounded-2xl border border-border/50 bg-white/20 backdrop-blur-sm p-4 space-y-3">
+    <div className="flex items-center gap-2 mb-1">
+      <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: GRADIENT }}>
+        <Icon className="w-3.5 h-3.5 text-white" />
+      </div>
+      <span className="text-sm font-semibold">{title}</span>
+    </div>
+    {children}
+  </div>
+);
 
 const Setup = () => {
   const { athlete, fetchProfile } = useAuthStore();
-  
-  const [bio, setBio] = useState({ 
-    age: 25, 
-    weight: 60, 
-    height: 165, 
-    mood: '', 
-    symptoms: '', 
-    exercise_frequency: '',
-    diet: '',
-    sleep_hours: 7, 
-    stress_level: 5 
+  const [bio, setBio] = useState({
+    age: 25, weight: 60, height: 165,
+    mood: '', symptoms: '', exercise_frequency: '', diet: '',
+    sleep_hours: 7, stress_level: 5,
   });
-  
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    // Pre-fill fields that don't change often from the latest biometrics entry
-    if (athlete?.biometricsHistory && athlete.biometricsHistory.length > 0) {
-      const lastBio = athlete.biometricsHistory[athlete.biometricsHistory.length - 1];
+    if (athlete?.biometricsHistory?.length) {
+      const last = athlete.biometricsHistory[athlete.biometricsHistory.length - 1];
       setBio({
-        age: lastBio.age || 25,
-        weight: lastBio.weight || 60,
-        height: lastBio.height || 165,
-        mood: '', // intentionally blank
-        symptoms: '', // intentionally blank
-        exercise_frequency: lastBio.exercise_frequency || '',
-        diet: lastBio.diet || '',
-        sleep_hours: lastBio.sleep_hours || 7,
-        stress_level: lastBio.stress_level || 5
+        age: last.age || 25, weight: last.weight || 60, height: last.height || 165,
+        mood: '', symptoms: '',
+        exercise_frequency: last.exercise_frequency || '',
+        diet: last.diet || '',
+        sleep_hours: last.sleep_hours || 7,
+        stress_level: last.stress_level || 5,
       });
     }
   }, [athlete]);
 
   const submitBiometrics = async () => {
     if (!bio.mood || !bio.symptoms || !bio.exercise_frequency || !bio.diet || !bio.age || !bio.weight || !bio.height) {
-      toast({ title: 'Missing Information', description: 'Please complete all fields before continuing.', variant: 'destructive' });
+      toast({ title: 'Missing Information', description: 'Please complete all fields.', variant: 'destructive' });
       return;
     }
-
     setLoading(true);
     try {
       await api.post('/api/biometrics', bio);
-      await fetchProfile(); // refresh the global state with latest info
+      await fetchProfile();
       toast({ title: 'Biometrics saved!', description: 'Your training context is updated.' });
       navigate('/dashboard');
     } catch (err: any) {
@@ -71,6 +144,8 @@ const Setup = () => {
       setLoading(false);
     }
   };
+
+  const set = (k: string) => (v: any) => setBio((b) => ({ ...b, [k]: v }));
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-background text-foreground">
@@ -83,75 +158,95 @@ const Setup = () => {
           <Link to="/dashboard"><ArrowLeft className="w-5 h-5" /></Link>
         </Button>
 
-        <div className="text-center mb-6 mt-4">
-          <Heart className="w-10 h-10 text-primary mx-auto mb-3" />
+        {/* Header */}
+        <div className="text-center mb-7 mt-2">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: GRADIENT }}>
+            <Heart className="w-7 h-7 text-white" />
+          </div>
           <h2 className="text-2xl font-display font-bold">Log Biometrics</h2>
-          <p className="text-muted-foreground mt-2 text-sm">How are you feeling? This data powers your personalized training plan.</p>
+          <p className="text-muted-foreground mt-1.5 text-sm max-w-xs mx-auto leading-relaxed">
+            How are you feeling today? This powers your personalised training plan.
+          </p>
         </div>
 
-        <div className="space-y-5">
-          <div className="grid grid-cols-3 gap-3">
-            <div className="space-y-1">
-              <Label className="text-xs flex items-center gap-1"><User className="w-3 h-3" /> Age</Label>
-              <Input type="number" value={bio.age} onChange={(e) => setBio({ ...bio, age: +e.target.value })} className="bg-secondary border-border" />
+        <div className="space-y-4">
+
+          {/* Body stats */}
+          <Section icon={User} title="Body Stats">
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: 'Age', icon: User, key: 'age', unit: 'yr' },
+                { label: 'Weight', icon: Scale, key: 'weight', unit: 'kg' },
+                { label: 'Height', icon: Ruler, key: 'height', unit: 'cm' },
+              ].map(({ label, key, unit }) => (
+                <div key={key} className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">{label} ({unit})</Label>
+                  <Input
+                    type="number"
+                    value={(bio as any)[key]}
+                    onChange={(e) => set(key)(+e.target.value)}
+                    className="bg-secondary/60 border-border text-center font-semibold"
+                  />
+                </div>
+              ))}
             </div>
-            <div className="space-y-1">
-              <Label className="text-xs flex items-center gap-1"><Scale className="w-3 h-3" /> Weight (kg)</Label>
-              <Input type="number" value={bio.weight} onChange={(e) => setBio({ ...bio, weight: +e.target.value })} className="bg-secondary border-border" />
+          </Section>
+
+          {/* Mood */}
+          <Section icon={Brain} title="Today's Mood *">
+            <PillGroup options={MOODS} value={bio.mood} onChange={set('mood')} />
+          </Section>
+
+          {/* Symptoms */}
+          <Section icon={Heart} title="Symptoms *">
+            <PillGroup options={SYMPTOMS} value={bio.symptoms} onChange={set('symptoms')} />
+          </Section>
+
+          {/* Exercise frequency */}
+          <Section icon={User} title="Exercise Frequency *">
+            <PillGroup options={FREQUENCIES} value={bio.exercise_frequency} onChange={set('exercise_frequency')} />
+          </Section>
+
+          {/* Diet */}
+          <Section icon={Heart} title="Diet *">
+            <PillGroup options={DIETS} value={bio.diet} onChange={set('diet')} />
+          </Section>
+
+          {/* Sleep */}
+          <Section icon={Moon} title={`Sleep · ${bio.sleep_hours}h / night`}>
+            <GradientSlider
+              value={bio.sleep_hours} min={0} max={12} step={0.5}
+              onChange={set('sleep_hours')}
+              leftColor="#ef4444" rightColor="#22c55e"
+            />
+            <div className="flex justify-between text-[10px] text-muted-foreground">
+              <span>0 h</span><span>6 h</span><span>12 h</span>
             </div>
-            <div className="space-y-1">
-              <Label className="text-xs flex items-center gap-1"><Ruler className="w-3 h-3" /> Height (cm)</Label>
-              <Input type="number" value={bio.height} onChange={(e) => setBio({ ...bio, height: +e.target.value })} className="bg-secondary border-border" />
+          </Section>
+
+          {/* Stress */}
+          <Section icon={Brain} title={`Stress · ${bio.stress_level} / 10`}>
+            <GradientSlider
+              value={bio.stress_level} min={1} max={10} step={1}
+              onChange={set('stress_level')}
+              leftColor="#22c55e" rightColor="#ef4444"
+            />
+            <div className="flex justify-between text-[10px] text-muted-foreground">
+              <span>Relaxed</span><span>Moderate</span><span>High</span>
             </div>
-          </div>
+          </Section>
 
-          <div className="space-y-2">
-            <Label className="text-xs">Mood <span className="text-destructive">*</span></Label>
-            <Select value={bio.mood} onValueChange={(v) => setBio({ ...bio, mood: v })}>
-              <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="Select mood" /></SelectTrigger>
-              <SelectContent>{moods.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-xs">Symptoms <span className="text-destructive">*</span></Label>
-            <Select value={bio.symptoms} onValueChange={(v) => setBio({ ...bio, symptoms: v })}>
-              <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="Select symptom" /></SelectTrigger>
-              <SelectContent>{symptoms.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-xs">Exercise Frequency <span className="text-destructive">*</span></Label>
-            <Select value={bio.exercise_frequency} onValueChange={(v) => setBio({ ...bio, exercise_frequency: v })}>
-              <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="Select frequency" /></SelectTrigger>
-              <SelectContent>{exercise_frequencies.map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-xs">Diet <span className="text-destructive">*</span></Label>
-            <Select value={bio.diet} onValueChange={(v) => setBio({ ...bio, diet: v })}>
-              <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="Select diet" /></SelectTrigger>
-              <SelectContent>{diets.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2 pt-2">
-            <Label className="text-xs flex items-center gap-1"><Moon className="w-3 h-3" /> Sleep Hours: {bio.sleep_hours}h</Label>
-            <Slider value={[bio.sleep_hours]} onValueChange={([v]) => setBio({ ...bio, sleep_hours: v })} min={0} max={12} step={0.5} className="py-2" />
-          </div>
-
-          <div className="space-y-2 pt-2">
-            <Label className="text-xs flex items-center gap-1"><Brain className="w-3 h-3" /> Stress Level: {bio.stress_level}/10</Label>
-            <Slider value={[bio.stress_level]} onValueChange={([v]) => setBio({ ...bio, stress_level: v })} min={1} max={10} step={1} className="py-2" />
-          </div>
         </div>
 
-        <div className="mt-8">
-          <Button onClick={submitBiometrics} disabled={loading} className="w-full gradient-primary border-0 text-primary-foreground rounded-full h-12">
+        <div className="mt-6">
+          <Button
+            onClick={submitBiometrics}
+            disabled={loading}
+            className="w-full border-0 text-primary-foreground rounded-full h-12 font-semibold text-base"
+            style={{ background: GRADIENT }}
+          >
             {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
-            Complete Setup
+            Save Biometrics
           </Button>
         </div>
       </motion.div>
