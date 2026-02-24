@@ -112,95 +112,100 @@ const Dashboard = () => {
         </p>
       </header>
 
-      <main className="relative z-10 max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-8">
+      <main className="relative z-10 max-w-2xl mx-auto px-4 md:px-8 py-8 space-y-6">
 
-        {/* ── Main grid: Cycle ring + Actions ── */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="grid md:grid-cols-2 gap-8">
-
-          {/* Left: Cycle Ring */}
-          <div className="glass-card p-8 flex flex-col items-center justify-center relative overflow-hidden">
-            {/* Decorative yoga image bottom-right */}
-            <img src={yogaWarrior} alt="" className="absolute -bottom-4 -right-4 w-28 h-28 object-contain opacity-20 pointer-events-none" />
-            <CycleRing
-              currentDay={cycleInfo?.currentCycleDay ?? null}
-              phase={cycleInfo?.currentPhase ?? null}
-              cycleLength={cycleInfo?.averageCycleLength}
-              predictedNextPeriod={cycleInfo?.predictedNextPeriodStart}
-            />
-            {cycleInfo?.physiologicalContext && (
-              <p className="text-xs text-muted-foreground text-center mt-4 max-w-xs leading-relaxed">
-                {cycleInfo.physiologicalContext}
-              </p>
-            )}
-          </div>
-
-          {/* Right: Actions */}
-          <div className="space-y-6">
-            {/* Today's Action */}
-            {todayWorkout ? (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card p-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
-                    <Dumbbell className="w-5 h-5 text-primary-foreground" />
-                  </div>
-                  <div>
-                    <h3 className="font-display font-semibold">Today's Focus</h3>
-                    <p className="text-sm text-muted-foreground">{todayWorkout.focus}</p>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground mb-4">{todayWorkout.exercises?.length} exercises</p>
-                <Button asChild className="w-full gradient-primary border-0 text-primary-foreground rounded-full">
-                  <Link to="/workout/today">Start Workout 🏃‍♀️</Link>
-                </Button>
-              </motion.div>
-            ) : (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card p-8 text-center">
-                <Zap className="w-12 h-12 text-primary mx-auto mb-4" />
-                <h3 className="font-display font-bold text-xl mb-2">Generate Your Weekly Plan</h3>
-                <p className="text-sm text-muted-foreground mb-6">Our AI will create a cycle-synced 7-day plan tailored to your biology.</p>
-                <Button onClick={generatePlan} disabled={generating} className="gradient-primary border-0 text-primary-foreground rounded-full px-8 py-5">
-                  {generating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Zap className="w-4 h-4 mr-2" />}
-                  Generate Plan
-                </Button>
-              </motion.div>
-            )}
-
-            {/* Coach's Note */}
-            {currentPlan?.plan?.athlete_summary && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass-card p-6 border-l-4 border-l-primary">
-                <h4 className="font-display font-semibold text-sm mb-2 text-primary">🧠 Coach's Note</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">{currentPlan.plan.athlete_summary}</p>
-              </motion.div>
-            )}
-
-            {/* Quick Links — richer cards */}
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { to: '/plan', icon: ClipboardList, label: 'Plan', emoji: '📋', desc: 'Weekly' },
-                { to: '/import', icon: Upload, label: 'Import', emoji: '📥', desc: 'Data' },
-                { to: '/check-in', icon: MessageSquare, label: 'Check-in', emoji: '✅', desc: 'Feedback' },
-              ].map((link, i) => (
-                <motion.div
-                  key={link.to}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.25 + i * 0.08 }}
-                  whileHover={{ scale: 1.04, y: -2 }}
-                  whileTap={{ scale: 0.97 }}
-                >
-                  <Link to={link.to} className="glass-card p-4 text-center hover:border-primary/40 transition-colors group flex flex-col items-center gap-1">
-                    <span className="text-2xl">{link.emoji}</span>
-                    <span className="text-xs font-semibold text-foreground/80 group-hover:text-primary transition-colors">{link.label}</span>
-                    <span className="text-[10px] text-muted-foreground">{link.desc}</span>
-                  </Link>
-                </motion.div>
-              ))}
+        {/* 1. Start Workout / Generate Plan */}
+        {todayWorkout ? (
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card p-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-11 h-11 rounded-xl gradient-primary flex items-center justify-center">
+                <Dumbbell className="w-6 h-6 text-primary-foreground" />
+              </div>
+              <div>
+                <h3 className="font-display font-semibold text-lg">Today's Focus</h3>
+                <p className="text-sm text-muted-foreground">{todayWorkout.focus}</p>
+              </div>
             </div>
-          </div>
+            <p className="text-xs text-muted-foreground mb-4">{todayWorkout.exercises?.length} exercises lined up</p>
+            <Button asChild className="w-full gradient-primary border-0 text-primary-foreground rounded-full py-5 text-base font-semibold">
+              <Link to="/workout/today">Start Workout</Link>
+            </Button>
+          </motion.div>
+        ) : (
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card p-8 text-center">
+            <Zap className="w-12 h-12 text-primary mx-auto mb-4" />
+            <h3 className="font-display font-bold text-xl mb-2">Generate Your Weekly Plan</h3>
+            <p className="text-sm text-muted-foreground mb-6">Our AI will create a cycle-synced 7-day plan tailored to your biology.</p>
+            <Button onClick={generatePlan} disabled={generating} className="gradient-primary border-0 text-primary-foreground rounded-full px-8 py-5">
+              {generating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Zap className="w-4 h-4 mr-2" />}
+              Generate Plan
+            </Button>
+          </motion.div>
+        )}
+
+        {/* 2. Cycle Ring */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+          className="glass-card p-8 flex flex-col items-center justify-center relative overflow-hidden"
+        >
+          <img src={yogaWarrior} alt="" className="absolute -bottom-4 -right-4 w-28 h-28 object-contain opacity-20 pointer-events-none" />
+          <CycleRing
+            currentDay={cycleInfo?.currentCycleDay ?? null}
+            phase={cycleInfo?.currentPhase ?? null}
+            cycleLength={cycleInfo?.averageCycleLength}
+            predictedNextPeriod={cycleInfo?.predictedNextPeriodStart}
+          />
+          {cycleInfo?.physiologicalContext && (
+            <p className="text-xs text-muted-foreground text-center mt-4 max-w-xs leading-relaxed">
+              {cycleInfo.physiologicalContext}
+            </p>
+          )}
         </motion.div>
+
+        {/* 3. Quick Links — larger cards */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+          className="grid grid-cols-3 gap-4"
+        >
+          {[
+            { to: '/plan', icon: ClipboardList, label: 'Plan', desc: 'Weekly schedule' },
+            { to: '/import', icon: Upload, label: 'Import', desc: 'Sync data' },
+            { to: '/check-in', icon: MessageSquare, label: 'Check-in', desc: 'Give feedback' },
+          ].map((link, i) => (
+            <motion.div
+              key={link.to}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.32 + i * 0.08 }}
+              whileHover={{ scale: 1.04, y: -3 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              <Link to={link.to} className="glass-card p-5 text-center hover:border-primary/40 transition-colors group flex flex-col items-center gap-2">
+                <div className="w-12 h-12 rounded-2xl gradient-primary flex items-center justify-center">
+                  <link.icon className="w-6 h-6 text-primary-foreground" />
+                </div>
+                <span className="text-sm font-semibold text-foreground/80 group-hover:text-primary transition-colors">{link.label}</span>
+                <span className="text-[11px] text-muted-foreground">{link.desc}</span>
+              </Link>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* 4. Coach's Note */}
+        {currentPlan?.plan?.athlete_summary && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+            className="glass-card p-6 border-l-4 border-l-primary"
+          >
+            <h4 className="font-display font-semibold text-sm mb-2 text-primary">Coach's Note</h4>
+            <p className="text-sm text-muted-foreground leading-relaxed">{currentPlan.plan.athlete_summary}</p>
+          </motion.div>
+        )}
+
       </main>
     </div>
   );
 };
 
 export default Dashboard;
+
